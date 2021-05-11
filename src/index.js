@@ -1,84 +1,93 @@
 const Discord = require('discord.js')
+const Game = require('./classes/Game')
+
 const client = new Discord.Client()
-
-const util = require('./util')
-const mapParser = require('./mapParser')
-const renderer = require('./renderer')
-
-const prefix = '^'
-let game = {
-  history: [],
-  players: [], //unused atm
-  turn: null
-} //in the future, manage multiple concurrent games
+let game
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`)
 })
 
 client.on('message', async msg => {
-  let conditions = [
-    !msg.author.bot,
-    msg.content.startsWith(prefix)
-  ]
-  for(let condition of conditions)
-    if(!condition)
-      return
-  
-  let commandBody = msg.content.slice(prefix.length)
-  let args = commandBody.split(' ')
-  let command = args.shift().toLowerCase()
+  try{
+    let conditions = [
+      !msg.author.bot,
+      msg.content.startsWith(process.env.PREFIX)
+    ]
+    for(let condition of conditions)
+      if(!condition)
+        return
+    
+    let commandBody = msg.content.slice(process.env.PREFIX.length)
+    let args = commandBody.split(' ')
+    let command = args.shift().toLowerCase()
 
-  if(command === 'ping')
-    msg.reply('pong!')
+    if(command === 'ping')
+      msg.reply(`I'm awake!`)
 
-  if(command === 'begin' || command === 'restart') {
-    try {
-      let map = await mapParser.parse(args[0])
-      game = {
-        history: [map],
-        players: [],
-        turn: 0
+    if(command === 'begin' || command === 'restart') {
+      let taggedUser = msg.mentions.members.first() || msg.guild.members.cache.get(args[1])
+      if(!taggedUser)
+        msg.channel.send(`No opponent selected. Begin a game like this:\n${process.env.PREFIX}begin ${msg.author} narrow`)
+      else {
+        let mapList = await Game.getAvailableMaps()
+        let mapName = args.find(arg => mapList.includes(arg))
+        if(!mapName)
+          msg.channel.send(`Map not found. Valid maps are: ${mapList.join(', ')}`)
+        else {
+          game = new Game(msg.author, taggedUser.user, mapName)
+          await game.init()
+          console.log('\ngame', game, '\nstate', game.state)
+          msg.channel.send(game.toString())
+        }
       }
-      msg.channel.send(util.turnMsg(game) + renderer.render(game.history[game.history.length-1]))
-    } catch(err) {
-      if(err === 'mapNotFound') {
-        let list = await mapParser.list()
-        msg.channel.send(`Map not found. Valid maps are: ${list.join(', ')}`)
+    }
+
+    if(command === 'move') {
+      if(game === undefined)
+        msg.channel.send(`Start a game first.\n${process.env.PREFIX}begin @<opponent> <mapname>`)
+      else if(msg.author == game.nextPlayer) {
+        let from, to
+        if(args.length == 1 && args[0].length == 4){
+          from = args[0].toUpperCase().slice(0,2)
+          to = args[0].toUpperCase().slice(2,4)
+        } else if(args.length == 1 && args[0].length == 5 && ':-|\\/~./;'.includes(args[0][2])) {
+          from = args[0].toUpperCase().slice(0,2)
+          to = args[0].toUpperCase().slice(3,5)
+        } else if(args.length == 2 && args[0].length == 2 && args[1].length == 2) {
+          from = args[0].toUpperCase()
+          to = args[1].toUpperCase()
+        } else
+          msg.channel.send(`Invalid address. Use format:\n${process.env.PREFIX}move A1:B2`)
+        
+        if(from && to){
+          let valid = game.move(from, to)
+          console.log('\nvalid', valid)
+          console.log('\ngame', game)
+          if(valid)
+            msg.channel.send(game.toString())
+          else
+            msg.channel.send(`Invalid move, try again.`)
+        }
       } else
-        throw err
+        msg.channel.send('Its not your turn!')
     }
-  }
 
-  if(command === 'move') {
-    if(game.turn === null)
-      msg.channel.send('Start a game first.')
-    else {
-      let state = JSON.parse(JSON.stringify(game.history[game.history.length-1]))
-      let headings = args[0].split(':')
-      let [from, to] = headings.map(heading => util.getFromHeading(state, heading))
-      state[to.row][to.file] = {
-        type: state[from.row][from.file].type,
-        team: state[from.row][from.file].team
+    if(command === 'undo') {
+      if(game.history.length == 0) {
+        msg.channel.send('No moves to undo!')
+      } else {
+        game.undo()
+        msg.channel.send(game.toString())
       }
-      state[from.row][from.file] = null
-      game.history.push(state)
-      game.turn = game.turn==0 ? 1 : 0
-      msg.channel.send(util.turnMsg(game) + renderer.render(game.history[game.history.length-1]))
     }
-  }
 
-  if(command === 'undo') {
-    game.history.pop()
-    game.turn = game.turn==0 ? 1 : 0
-    msg.channel.send(util.turnMsg(game) + renderer.render(game.history[game.history.length-1]))
-  }
+    if(command === 'test') {
 
-  if(command === 'test') {
-    //let map = await mapParser.parse(args[0])
-    let list = await mapParser.list()
-    //msg.channel.send(`\`\`\`\n${map.join('\n')}\`\`\``)
-    msg.channel.send(list.join(', '))
+      msg.channel.send(`whatup`)
+    }
+  } catch(err) {
+    console.log(err)
   }
 })
 client.login(process.env.TOKEN)
