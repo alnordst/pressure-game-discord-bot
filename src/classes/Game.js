@@ -17,7 +17,7 @@ class Game {
     let rawMap = await fs.readFile(mapPath, 'utf8')
     let newState = Board.fromJson(JSON.parse(rawMap))
     this.history.push(newState)
-    this.turn = 0
+    this.turn = Math.floor(Math.random() * 2)
   }
 
   static getAvailableMaps() {

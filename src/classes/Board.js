@@ -113,8 +113,6 @@ class Board {
         let square = this.data[i][j]
         let x = (parseInt(j)+1) * 16
         await draw(square.terrain.name, x, y)
-        if(square.terrain.name=='forest')
-          console.log('forest', i, j, x,y)
         if(!square.isEmpty)
           await draw(`${['red','blue'][square.unit.team]}_${square.unit.name}`, x, y)
       }
