@@ -11,6 +11,10 @@ class Square {
     return new Square(Terrain.fromChar(char), Unit.fromChar(char))
   }
 
+  static fromTwoChars(terrain, unit) {
+    return new Square(Terrain.fromChar(terrain), Unit.fromChar(unit))
+  }
+
   static moveUnit(from, to) {
     console.log('\nmove', from, to)
     if(from.unit && to.terrain.passible){

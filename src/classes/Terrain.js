@@ -7,7 +7,11 @@ class Terrain {
 
   static fromChar(char) {
     if(char == '#')
-      return new ImpassibleTerrain('wall')
+      return new ImpassibleTerrain('mountain')
+    else if(char == '^')
+      return new ProtectedTerrain('forest')
+    else if(char == '.')
+      return new ExposedTerrain('road')
     else
       return new DefaultTerrain('plains')
   }

@@ -1,6 +1,7 @@
 class Unit {
   constructor(team) {
     this.team = team
+    this.name = ''
     this.offense = 1
     this.defense = 2
   }
@@ -26,6 +27,11 @@ class Unit {
 
 
 class ArtilleryUnit extends Unit {
+  constructor(team) {
+    super(team)
+    this.name = 'artillery'
+  }
+
   toString () {
     return this.team == 0 ? 'A' : 'a'
   }
@@ -33,6 +39,11 @@ class ArtilleryUnit extends Unit {
 
 
 class CommandUnit extends Unit {
+  constructor(team) {
+    super(team)
+    this.name = 'command'
+  }
+
   toString () {
     return this.team == 0 ? 'C' : 'c'
   }
@@ -40,6 +51,11 @@ class CommandUnit extends Unit {
 
 
 class InfantryUnit extends Unit {
+  constructor(team) {
+    super(team)
+    this.name = 'infantry'
+  }
+
   toString () {
     return this.team == 0 ? 'I' : 'i'
   }
@@ -47,6 +63,11 @@ class InfantryUnit extends Unit {
 
 
 class SniperUnit extends Unit {
+  constructor(team) {
+    super(team)
+    this.name = 'sniper'
+  }
+
   toString () {
     return this.team == 0 ? 'S' : 's'
   }
@@ -56,6 +77,7 @@ class SniperUnit extends Unit {
 class TankUnit extends Unit {
   constructor(team) {
     super(team)
+    this.name = 'tank'
     this.offense = 2
   }
 

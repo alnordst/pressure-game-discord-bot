@@ -71,6 +71,16 @@ class Game {
     let board = this.state.toString()
     return `${text}\n${board}`
   }
+
+  async toGif() {
+    let text
+    if(this.winner)
+      text = `${this.winner} wins!`
+    else
+      text = `${this.nextPlayer} to move with ${['red', 'blue'][this.turn]}.`
+    await this.state.toGif()
+    return text
+  }
 }
 
 module.exports = Game

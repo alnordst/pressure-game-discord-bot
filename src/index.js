@@ -37,13 +37,13 @@ client.on('message', async msg => {
         else {
           game = new Game(msg.author, taggedUser.user, mapName)
           await game.init()
-          console.log('\ngame', game, '\nstate', game.state)
-          msg.channel.send(game.toString())
+          let text = await game.toGif()
+          msg.channel.send(text, { files: [ './board.gif' ] })
         }
       }
     }
 
-    if(command === 'move') {
+    if(['move', 'mv', 'm'].includes(command)) {
       if(game === undefined)
         msg.channel.send(`Start a game first.\n${process.env.PREFIX}begin @<opponent> <mapname>`)
       else if(msg.author == game.nextPlayer) {
@@ -64,9 +64,10 @@ client.on('message', async msg => {
           let valid = game.move(from, to)
           console.log('\nvalid', valid)
           console.log('\ngame', game)
-          if(valid)
-            msg.channel.send(game.toString())
-          else
+          if(valid){
+            let text = await game.toGif()
+            msg.channel.send(text, { files: [ './board.gif' ] })
+          } else
             msg.channel.send(`Invalid move, try again.`)
         }
       } else
@@ -78,13 +79,13 @@ client.on('message', async msg => {
         msg.channel.send('No moves to undo!')
       } else {
         game.undo()
-        msg.channel.send(game.toString())
+        let text = await game.toGif()
+        msg.channel.send(text, { files: [ './board.gif' ] })
       }
     }
 
     if(command === 'test') {
-
-      msg.channel.send(`whatup`)
+      msg.channel.send(`whatup, its the dev bot`)
     }
   } catch(err) {
     console.log(err)

@@ -9,7 +9,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "discord.js": "^12.5.3"
+    "canvas": "^2.7.0",
+    "discord.js": "^12.5.3",
+    "gifencoder": "^2.0.1"
   },
   "devDependencies": {
     "dotenv": "^9.0.1"

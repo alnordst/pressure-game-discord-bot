@@ -1,4 +1,7 @@
 const Square = require('./Square')
+const GifEncoder = require('gifencoder')
+const { createCanvas, loadImage } = require('canvas')
+const fs = require('fs')
 
 class Board {
   constructor(data) {
@@ -6,9 +9,18 @@ class Board {
   }
 
   static fromJson(json) {
-    return new Board(json.map(line => line.split('').map(item => {
-      return Square.fromChar(item)
-    })))
+    if(Array.isArray(json))
+      return new Board(json.map(line => line.split('').map(item => {
+        return Square.fromChar(item)
+      })))
+    else{
+      return new Board(json.terrain.map((line, i) => {
+        return line.split('').map((terrainItem, j) => {
+          let unitItem = json.units[i][j]
+          return Square.fromTwoChars(terrainItem, unitItem)
+        })
+      }))
+    }
   }
 
   get rowCount() {
@@ -67,6 +79,49 @@ class Board {
       return String.fromCharCode('A'.charCodeAt(0) + i)
     }).join(' ')
     return `\`\`\`\n${display}\n${bottom}\`\`\``
+  }
+
+  async toGif() {
+    const encoder = new GifEncoder(16*(1+this.fileCount), 16*(1+this.rowCount))
+    const canvas = createCanvas(16*(1+this.fileCount), 16*(1+this.rowCount))
+
+    encoder.createReadStream().pipe(fs.createWriteStream('board.gif'))
+    encoder.start()
+    encoder.setRepeat(0)
+    encoder.setDelay(500)
+    encoder.setQuality(10)
+
+    const ctx = canvas.getContext('2d')
+
+    const draw = async function(filename, x, y) {
+      let image = await loadImage(`./sprites/${filename}.png`)
+      ctx.drawImage(image, x ,y)
+    }
+
+    // draw row numbers
+    for(let i=this.rowCount; i>=1; i--)
+      await draw(i, 0, (this.rowCount-i)*16)
+
+    // draw file letters
+    for(let i=0; i<this.fileCount; i++)
+      await draw(String.fromCharCode('a'.charCodeAt(0)+i),(i+1)*16,this.rowCount*16)
+
+    // draw board contents
+    for(let i in this.data) {
+      let y = i * 16
+      for(let j in this.data[i]) {
+        let square = this.data[i][j]
+        let x = (parseInt(j)+1) * 16
+        await draw(square.terrain.name, x, y)
+        if(square.terrain.name=='forest')
+          console.log('forest', i, j, x,y)
+        if(!square.isEmpty)
+          await draw(`${['red','blue'][square.unit.team]}_${square.unit.name}`, x, y)
+      }
+    }
+
+    encoder.addFrame(ctx)
+    encoder.finish()
   }
 }
 
