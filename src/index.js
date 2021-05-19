@@ -116,7 +116,14 @@ client.on('message', async msg => {
     let command = args.shift().toLowerCase()
 
     if(command === 'ping') {
-      msg.reply(`I'm awake!`)
+      let message = `I'm awake!`
+      try{
+        await axios.get('/players')
+        message += ' The api is up too.'
+      } catch(err) {
+        message += ' The api is down though.'
+      }
+      msg.reply(message)
     }
 
     if(command === 'help') {
