@@ -1,4 +1,4 @@
-FROM node:lts-alpine
+FROM gzlock/docker-node-canvas:latest
 
 WORKDIR /usr/src/app
 
