@@ -20,24 +20,31 @@ let playerFromId = async (id) => {
 }
 
 let render = async (game) => {
-  let text = `Game ${game.id}\n`
-  if(game.is_complete)
-    if(game.winner == 'red'){
-      let red = await playerFromId(game.red_player_id)
-      text += `${red} wins!`
-    } else if(game.winner == 'blue') {
-      let blue = await playerFromId(game.blue_player_id)
-      text += `${blue} wins!`
-    } else
-      text += 'Draw!'
-  else {
-    let toMove = await playerFromId(game[`${game.to_move}_player_id`])
-    text += `${toMove} to move with ${game.to_move}.`
+  let text
+  let filename
+  if('is_complete' in game) {
+    text = `Game ${game.id}\n`
+    filename = `game-${game.id}.gif`
+    if(game.is_complete)
+      if(game.winner == 'red'){
+        let red = await playerFromId(game.red_player_id)
+        text += `${red} wins!`
+      } else if(game.winner == 'blue') {
+        let blue = await playerFromId(game.blue_player_id)
+        text += `${blue} wins!`
+      } else
+        text += 'Draw!'
+    else {
+      let toMove = await playerFromId(game[`${game.to_move}_player_id`])
+      text += `${toMove} to move with ${game.to_move}.`
+    }
+  } else {
+    text = `Map: ${game.map_name}`
+    filename = `map-${game.id}.gif`
   }
 
   const encoder = new GifEncoder(16*(1+game.files), 16*(1+game.ranks))
   const canvas = createCanvas(16*(1+game.files), 16*(1+game.ranks))
-  const filename = `${game.id}.gif`
   encoder.createReadStream().pipe(fs.createWriteStream(filename))
   encoder.start()
   encoder.setRepeat(0)
@@ -106,7 +113,6 @@ client.on('message', async msg => {
     let valid = [
       !msg.author.bot,
       msg.content.startsWith(process.env.PREFIX),
-      msg.channel.name === process.env.CHANNEL_NAME
     ].reduce((v, condition) => v && condition)
     if(!valid)
       return
@@ -138,7 +144,9 @@ client.on('message', async msg => {
         'undo <game id>': 'Undo a move.',
         'concede <game id>': 'Concede game.',
         'offer-draw <game id>': 'Offer a draw.',
-        'set-notifications <on|off>': 'This dictates whether or not the bot pings you on discord when its your turn. By default this is on.'
+        'set-notifications <on|off>': 'This dictates whether or not the bot pings you on discord when its your turn. By default this is on.',
+        'list-maps': 'Get list of available maps.',
+        'show-map <map name>': 'Show a graphical representation of a map.'
       }
       msg.channel.send(Object.entries(commands).map(([key, value]) => {
         return `**${process.env.PREFIX}${key}**\n${value}`
@@ -163,7 +171,8 @@ client.on('message', async msg => {
       try {
         let game = await axios.get(`/game/${args[0]}`).then(response => response.data)
         let {text, filename} = await render(game)
-        msg.channel.send(text, { files: [ `./${filename}`]})
+        await msg.channel.send(text, { files: [ `./${filename}`]})
+        fs.unlink(filename, () => {})
       } catch(err) {
         if(err.response && err.response.status == 404)
           msg.channel.send('Game not found.')
@@ -182,7 +191,8 @@ client.on('message', async msg => {
         if(response.status == 200) {
           await msg.reply('game found!')
           let {text, filename} = await render(response.data)
-          msg.channel.send(text, { files: [ `./${filename}`] })
+          await msg.channel.send(text, { files: [ `./${filename}`] })
+          fs.unlink(filename, () => {})
         } else if(response.status == 204) {
           msg.reply('no game found, your challenge has been posted and is awaiting another player.')
         }
@@ -203,7 +213,8 @@ client.on('message', async msg => {
           to: args[2]
         })
         let {text, filename} = await render(response.data)
-        msg.channel.send(text, { files: [`./${filename}`]})
+        await msg.channel.send(text, { files: [`./${filename}`]})
+        fs.unlink(filename, () => {})
       } catch (err) {
         if(err.response && err.response.status == 400)
           msg.reply('invalid move.')
@@ -221,7 +232,8 @@ client.on('message', async msg => {
           game: args[0]
         })
         let {text, filename} = await render(response.data)
-        msg.channel.send(text, { files: [`./${filename}`]})
+        await msg.channel.send(text, { files: [`./${filename}`]})
+        fs.unlink(filename, () => {})
       } catch (err) {
         if(err.response && err.response.status == 401)
           msg.reply("you're not a player in this game!")
@@ -289,12 +301,25 @@ client.on('message', async msg => {
       let maps = await axios.get('/maps').then(r => r.data)
       let data = maps.reduce((acc, map) => {
         acc.ID.push(map.id.toString())
-        acc.Name.push(map.name)
+        acc.Name.push(map.map_name)
         return acc
       }, {ID: [], Name: []})
       msg.channel.send(makeTable(data))
     }
 
+    if(command === 'show-map') {
+      try {
+        let map = await axios.get(`/map/${args[0]}`).then(r => r.data)
+        let {text, filename} = await render(map)
+        await msg.channel.send(text, { files: [ `./${filename}` ]})
+        fs.unlink(filename, () => {})
+      } catch(err) {
+        if(err.response && err.response.status == 404)
+          msg.channel.send('Map not found.')
+        else
+          throw err
+      }
+    }
   } catch(err) {
     console.log(err)
   }
