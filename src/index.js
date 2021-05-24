@@ -27,7 +27,12 @@ client.on('message', async msg => {
     else
       return msg.reply(`I don't understand that command.`)
   } catch(err) {
-    console.log(err)
+    if(err.response && err.response.data)
+      console.log({status: err.response.status, data: err.response.data})
+    else if(err.response)
+      console.log(err.response)
+    else
+      console.log(err)
   }
 })
 client.login(process.env.TOKEN)

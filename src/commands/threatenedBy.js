@@ -8,9 +8,9 @@ module.exports = async (msg, [gameId, heading]) => {
     let game = await axios.get(`/game/${gameId}`)
       .then(r => r.data)
     let square = getSquare(heading).from(game.board)
-    let moves = square.availableMoves
-    let text = `Game ${gameId}:\nAvailable moves for ${squareReport(square)}`
-    return render(msg, text, game, moves)
+    let threatens = square.unit.threatens
+    let text = `Game ${gameId}:\nSquares threatened by ${squareReport(square)}`
+    return render(msg, text, game, threatens)
   } catch(err) {
     if(err.response && err.response.status == 404)
       return msg.channel.send('Game not found.')
