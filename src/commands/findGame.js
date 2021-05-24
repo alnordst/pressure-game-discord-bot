@@ -14,7 +14,7 @@ module.exports = async (msg, [mapName, pw]) => {
     })
     if(response.status == 200) {
       await msg.reply('game found!')
-      let text = gameReport(game)
+      let text = await gameReport(game)
       return render(msg, text, game)
     } else if(response.status == 204) {
       return msg.reply('no game found, your challenge has been posted and is awaiting another player.')

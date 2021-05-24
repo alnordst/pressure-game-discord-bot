@@ -11,7 +11,7 @@ module.exports = async (msg, [gameId]) => {
       },
       game: gameId
     }).then(r => r.data)
-    let text = gameReport(game)
+    let text = await gameReport(game)
     return render(msg, text, game)
   } catch (err) {
     if(err.response && err.response.status == 401)
