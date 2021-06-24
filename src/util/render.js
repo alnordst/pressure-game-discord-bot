@@ -6,13 +6,15 @@ const SQUARE_SIZE = 16
 
 let count = 0
 
-module.exports = async (msg, text, game, highlights = []) => {
+module.exports = async (sender, {text, board}) => {
   let filename = `${count++}.gif`
 
-  const length = SQUARE_SIZE*(1+game.files)
-  const width = SQUARE_SIZE*(1+game.ranks)
-  const encoder = new GifEncoder(length, width)
-  const canvas = createCanvas(length, width)
+  const ranks = board.length
+  const files = board[0].length
+  const length = SQUARE_SIZE*(1+ranks)
+  const width = SQUARE_SIZE*(1+files)
+  const encoder = new GifEncoder(width, length)
+  const canvas = createCanvas(width, length)
   encoder.createReadStream().pipe(fs.createWriteStream(filename))
   encoder.start()
   encoder.setRepeat(0)
@@ -25,37 +27,37 @@ module.exports = async (msg, text, game, highlights = []) => {
   }
 
   // draw row numbers
-  for(let i=game.ranks; i>=1; i--)
-  await draw(i, 0, (game.ranks-i)*SQUARE_SIZE)
+  for(let i=ranks; i>=1; i--)
+  await draw(i, 0, (ranks-i)*SQUARE_SIZE)
 
   // draw file letters
-  for(let i=0; i<game.files; i++)
+  for(let i=0; i<files; i++)
     await draw(
       String.fromCharCode('a'.charCodeAt(0)+i),
       (i+1)*SQUARE_SIZE,
-      game.ranks*SQUARE_SIZE
+      ranks*SQUARE_SIZE
     )
 
   // draw board contents
-  for(let i in game.board) {
+  for(let i in board) {
     let y = i * SQUARE_SIZE
-    for(let j in game.board[i]) {
-      let square = game.board[i][j]
+    for(let j in board[i]) {
+      let square = board[i][j]
       let x = (parseInt(j)+1) * SQUARE_SIZE
-      await draw(square.terrain.name, x, y)
-      if(square.unit)
+      await draw(square.terrain.type, x, y)
+      if(square.unit && square.unit.team && square.unit.type)
         await draw(`${square.unit.team}_${square.unit.type}`, x, y)
-      if(highlights.includes(square.heading)){
+      /*if(highlights.includes(square.heading)){
         ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'
         ctx.fillRect(x, y, SQUARE_SIZE, SQUARE_SIZE)
-      }
+      }*/
     }
   }
 
   encoder.addFrame(ctx)
   encoder.finish()
 
-  let result = await msg.channel.send(text, { files: [ `./${filename}`]})
+  let result = await sender.send(text, { files: [ `./${filename}`]})
   await fs.unlink(filename, () => {})
   return result
 }

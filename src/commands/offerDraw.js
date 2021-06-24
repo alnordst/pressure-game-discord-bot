@@ -1,26 +1,29 @@
-const axios = require('../util/axios')
+const api = require('../util/api')
 
-module.exports = async (msg, [gameId]) => {
-  try {
-    let response = await axios.post('/offer-draw', {
-      player: {
-        id: msg.author.id,
-        username: msg.author.username
-      },
-      game: gameId
-    })
-    if(response.status == 204)
-      return msg.reply('you have successfully offered a draw.')
-    else if(response.status == 200)
-      return msg.channel.send(`Both players have agreed to a draw in game ${gameId}.`)
-  } catch (err) {
-    if(err.response && err.response.status == 400)
-      return msg.reply("you've already offered a draw in this game.")
-    if(err.response && err.response.status == 401)
-      return msg.reply("you're not a player in this game!")
-    else if(err.response && err.response.status == 403)
-      return msg.reply("this game is already over.")
-    else
-      throw err
+module.exports = {
+  help: {
+    signature: '<matchId>',
+    example: '32',
+    usage: 'Offer a draw in a match.'
+  },
+  execute: async (msg, [matchId]) => {
+    try {
+      await api.post(`/${matchId}/offer-draw`, {
+        on_behalf_of: msg.author
+      })
+      msg.channel.send('Draw offer received.')
+    } catch(error) {
+      if(error.response && error.response.status == 401) {
+        msg.channel.send('You are not a participant of this match.')
+      } else if(error.response && error.response.status == 404) {
+        msg.channel.send('Match not found.')
+      } else if(error.response && error.response.status == 406) {
+        msg.channel.send('Match is over.')
+      } else if(error.response && error.response.status == 409) {
+        msg.channel.send('You have already offered a draw in this match.')
+      } else {
+        throw error
+      }
+    }
   }
 }

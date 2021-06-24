@@ -1,12 +1,14 @@
-const axios = require('../util/axios')
-const makeTable = require('../util/makeTable')
+const api = require('../util/api')
 
-module.exports = async (msg) => {
-  let maps = await axios.get('/maps').then(r => r.data)
-  let data = maps.reduce((acc, map) => {
-    acc.ID.push(map.id.toString())
-    acc.Name.push(map.map_name)
-    return acc
-  }, {ID: [], Name: []})
-  return msg.channel.send(makeTable(data))
+module.exports = {
+  help: {
+    signature: '',
+    example: '',
+    usage: 'List playable maps.'
+  },
+  execute: async msg => {
+    let response = await api.get(`/map`)
+    let maps = response.data
+    msg.channel.send(`Maps: \`${maps.map(map => `${map.id} - ${map.name}`).join(', ')}\``)
+  }
 }
