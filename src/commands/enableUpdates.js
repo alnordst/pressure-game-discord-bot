@@ -8,7 +8,7 @@ module.exports = {
   },
   execute: async msg => {
     try {
-      await api.post('player/register-webhook', {
+      await api.post('/player/register-webhook', {
         on_behalf_of: msg.author,
         url: process.env.THIS_URL
       })

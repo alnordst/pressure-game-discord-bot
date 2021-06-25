@@ -8,7 +8,7 @@ module.exports = {
   },
   execute: async (msg, [matchId]) => {
     try {
-      await api.post(`/${matchId}/offer-draw`, {
+      await api.post(`/match/${matchId}/offer-draw`, {
         on_behalf_of: msg.author
       })
       msg.channel.send('Draw offer received.')

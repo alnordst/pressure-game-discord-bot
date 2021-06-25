@@ -8,7 +8,7 @@ module.exports = {
   },
   execute: async (msg, [matchId]) => {
     try {
-      await api.post(`/${matchId}/concede`, {
+      await api.post(`/match/${matchId}/concede`, {
         on_behalf_of: msg.author
       })
       msg.channel.send('Concession successful.')

@@ -7,7 +7,7 @@ module.exports = {
     usage: 'If updates are disabled, the bot will only message you in direct response to your commands.'
   },
   execute: async msg => {
-    let webhooks = await api.post('player/list-webhooks', {
+    let webhooks = await api.post('/player/list-webhooks', {
       on_behalf_of: msg.author
     })
     let webhook = webhooks.find(it => it.url == process.env.THIS_URL)
