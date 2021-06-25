@@ -4,7 +4,6 @@ const commands = require('auto-load')('src/commands')
 const handleWebhook = require('./util/handleWebhook')
 
 const client = new Discord.Client()
-handleWebhook(client)
 
 const sendToErrorChannel = msg => {
   if(process.env.ERROR_CHANNEL)
@@ -12,6 +11,7 @@ const sendToErrorChannel = msg => {
 }
 
 client.on('ready', async () => {
+  handleWebhook(client)
   client.user.setActivity(`| DM me 'hello' to play`)
   console.log(`Logged in as ${client.user.tag}!`)
 })
