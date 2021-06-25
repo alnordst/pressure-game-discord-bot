@@ -14,7 +14,6 @@ const sendToErrorChannel = msg => {
 client.on('ready', async () => {
   client.user.setActivity(`| DM me 'hello' to play`)
   console.log(`Logged in as ${client.user.tag}!`)
-  //sendToErrorChannel(`I'm up!`)
 })
 
 client.on('message', async msg => {

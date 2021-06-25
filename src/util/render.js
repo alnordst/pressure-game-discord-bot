@@ -45,8 +45,30 @@ module.exports = async (sender, {text, board}) => {
       let square = board[i][j]
       let x = (parseInt(j)+1) * SQUARE_SIZE
       await draw(square.terrain.type, x, y)
-      if(square.unit && square.unit.team && square.unit.type)
+      if(square.unit && square.unit.team && square.unit.type) {
         await draw(`${square.unit.team}_${square.unit.type}`, x, y)
+        if(square.unit.command) {
+          let dir = square.unit.command.toLowerCase()
+          let offset = SQUARE_SIZE / 2
+          if(dir == 'n') {
+            await draw(`arrow_${dir}`, x - offset, y)
+          } else if(dir == 'ne') {
+            await draw(`arrow_${dir}`, x - offset, y + offset)
+          } else if(dir == 'e') {
+            await draw(`arrow_${dir}`, x, y + offset)
+          } else if(dir == 'se') {
+            await draw(`arrow_${dir}`, x + offset, y + offset)
+          } else if(dir == 's') {
+            await draw(`arrow_${dir}`, x + offset, y)
+          } else if(dir == 'sw') {
+            await draw(`arrow_${dir}`, x + offset, y - offset)
+          } else if(dir == 'w') {
+            await draw(`arrow_${dir}`, x, y - offset)
+          } else if(dir == 'nw') {
+            await draw(`arrow_${dir}`, x - offset, y - offset)
+          }
+        }
+      }
       /*if(highlights.includes(square.heading)){
         ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'
         ctx.fillRect(x, y, SQUARE_SIZE, SQUARE_SIZE)
