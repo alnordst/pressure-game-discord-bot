@@ -18,7 +18,7 @@ module.exports = {
     }
     if(commands)
       try {
-        await api.post(`/${matchId}/submit-move`, {
+        await api.post(`/match/${matchId}/submit-move`, {
           on_behalf_of: msg.author,
           commands
         })

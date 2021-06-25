@@ -20,7 +20,7 @@ module.exports = {
     }
     if(commands)
       try {
-        let response = await api.post(`/${matchId}/forecast`, {
+        let response = await api.post(`/match/${matchId}/forecast`, {
           on_behalf_of: msg.author,
           commands
         })
