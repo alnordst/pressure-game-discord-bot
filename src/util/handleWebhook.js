@@ -15,11 +15,13 @@ let handleWebhook = client => {
   app.post('/', async (req, res) => {
     try {
       console.log(`Handling webhook; reason: ${req.body.reason}; match_id: ${req.body.match_id}; player_id: ${req.body.player_id}`)
-      let player = await api.get(`/player/${req.body.player_id}`)
+      let response = await api.get(`/player/${req.body.player_id}`)
+      let player = response.data
       if(req.body.reason == 'draw-offer') {
         client.users.cache.get(player.discord_id).send(`A draw was offered in match ${req.body.match_id}.`)
       } else {
-        let match = await api.get(`/match/${req.body.match_id}`)
+        let response = await api.get(`/match/${req.body.match_id}`)
+        let match = response.data
         let head = ''
         if(req.body.reason == 'match over')
           head = 'Match is over!\n'
