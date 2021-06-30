@@ -22,6 +22,7 @@ client.on('message', async msg => {
 
   let args = msg.content.trim().split(' ')
   let command = changeCase.camelCase(args.shift())
+  console.log(`command: ${command}; args: [${args.join(' ')}]`)
   if(!(command in commands))
     command = 'default'
   try {
