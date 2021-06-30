@@ -4,13 +4,19 @@ const render = require('../util/render')
 
 module.exports = {
   help: {
-    signature: '',
-    example: '',
-    usage: `Find a match.`
+    signature: '[<map_id>] [<actions_per_turn>]',
+    example: '* 2',
+    usage: `Find a match. Map ID and actions per turn can be omitted for a more permissive search. To specify actions per turn while keeping map ID open, use a wildcard (*).`
   },
-  execute: async (msg) => {
+  execute: async (msg, [mapId, actionsPerTurn=1]) => {
+    let matchConfiguration = { actions_per_turn: actionsPerTurn }
+    if(mapId && parseInt(mapId) == parseInt(mapId))
+      matchConfiguration.map_id == parseInt(mapId)
     try {
-      let response = await api.post('/match/find-match', { on_behalf_of: msg.author })
+      let response = await api.post('/match/find-match', {
+        on_behalf_of: msg.author,
+        match_configuration: matchConfiguration
+      })
       let match = response.data
       if(response.status == 201) {
         return render(msg.channel, {
