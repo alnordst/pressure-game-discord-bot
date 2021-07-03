@@ -6,7 +6,7 @@ const handleWebhook = require('./util/handleWebhook')
 const client = new Discord.Client()
 
 const sendToErrorChannel = msg => {
-  if(process.env.ERROR_CHANNEL)
+  if(process.env.ERROR_CHANNEL && false)
     client.channels.cache.get(process.env.ERROR_CHANNEL).send(msg)
 }
 
@@ -28,12 +28,13 @@ client.on('message', async msg => {
   try {
     return await commands[command].execute(msg, args)
   } catch(error) {
+    console.log(error.stack)
     let full
     if(error.response && error.response.data){
-      console.log(error.response.data)
+      //console.log(error.response.data)
       full = JSON.stringify(error.response.data)
     } else {
-      console.log(error)
+      //console.log(error)
       full = error.stack
     }
     sendToErrorChannel(

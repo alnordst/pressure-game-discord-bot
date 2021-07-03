@@ -8,10 +8,12 @@ module.exports = {
     example: '* 2',
     usage: `Find a match. Map ID and actions per turn can be omitted for a more permissive search. To specify actions per turn while keeping map ID open, use a wildcard (*).`
   },
-  execute: async (msg, [mapId, actionsPerTurn=1]) => {
-    let matchConfiguration = { actions_per_turn: actionsPerTurn }
+  execute: async (msg, [mapId=null, actionsPerTurn=null]) => {
+    let matchConfiguration = {}
     if(mapId && parseInt(mapId) == parseInt(mapId))
-      matchConfiguration.map_id == parseInt(mapId)
+      matchConfiguration.map_id = parseInt(mapId)
+    if(actionsPerTurn && parseInt(actionsPerTurn) == parseInt(actionsPerTurn))
+      matchConfiguration.actions_per_turn = parseInt(actionsPerTurn)
     try {
       let response = await api.post('/match/find-match', {
         on_behalf_of: msg.author,
